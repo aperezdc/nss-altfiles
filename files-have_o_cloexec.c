@@ -17,7 +17,6 @@
    02111-1307 USA.  */
 
 #include <fcntl.h>
-#include <kernel-features.h>
 
 #if defined O_CLOEXEC && !defined __ASSUME_O_CLOEXEC
 int __have_o_cloexec;

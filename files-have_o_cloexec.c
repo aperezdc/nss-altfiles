@@ -16,7 +16,6 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <fcntl.h>
-#include <kernel-features.h>
 
 #if defined O_CLOEXEC && !defined __ASSUME_O_CLOEXEC
 int __have_o_cloexec;

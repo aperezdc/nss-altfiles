@@ -16,14 +16,12 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include <nss.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <bits/libc-lock.h>
-#include "nsswitch.h"
-
-#include <kernel-features.h>
+#include "compat.h"
 
 /* These symbols are defined by the including source file:
 
@@ -38,7 +36,7 @@
 
 #define ENTNAME_r	CONCAT(ENTNAME,_r)
 
-#define DATAFILE	"/etc/" DATABASE
+#define DATAFILE	ALTFILES_DATADIR "/" DATABASE
 
 #ifdef NEED_H_ERRNO
 # include <netdb.h>
@@ -128,7 +126,7 @@ internal_setent (int stayopen)
 
 /* Thread-safe, exported version of that.  */
 enum nss_status
-CONCAT(_nss_files_set,ENTNAME) (int stayopen)
+CONCAT(_nss_altfiles_set,ENTNAME) (int stayopen)
 {
   enum nss_status status;
 
@@ -165,7 +163,7 @@ internal_endent (void)
 
 /* Thread-safe, exported version of that.  */
 enum nss_status
-CONCAT(_nss_files_end,ENTNAME) (void)
+CONCAT(_nss_altfiles_end,ENTNAME) (void)
 {
   __libc_lock_lock (lock);
 
@@ -242,7 +240,7 @@ internal_getent (struct STRUCTURE *result,
 
 /* Return the next entry from the database file, doing locking.  */
 enum nss_status
-CONCAT(_nss_files_get,ENTNAME_r) (struct STRUCTURE *result, char *buffer,
+CONCAT(_nss_altfiles_get,ENTNAME_r) (struct STRUCTURE *result, char *buffer,
 				  size_t buflen, int *errnop H_ERRNO_PROTO)
 {
   /* Return next entry in host file.  */
@@ -314,7 +312,7 @@ CONCAT(_nss_files_get,ENTNAME_r) (struct STRUCTURE *result, char *buffer,
 
 #define DB_LOOKUP(name, db_char, keysize, keypattern, break_if_match, proto...)\
 enum nss_status								      \
-_nss_files_get##name##_r (proto,					      \
+_nss_altfiles_get##name##_r (proto,					      \
 			  struct STRUCTURE *result, char *buffer,	      \
 			  size_t buflen, int *errnop H_ERRNO_PROTO)	      \
 {									      \

@@ -42,4 +42,11 @@ install: $T
 	install -m 755 $T $(DESTDIR)$(PREFIX)/lib
 	ln -s $T $(DESTDIR)$(PREFIX)/lib/$(patsubst %.2,%,$T)
 
-.PHONY: distclean install
+export VERSION
+dist:
+	@ if test -n "$$VERSION" ; then V=$$VERSION ; \
+		else V=$$(git tag | sed -e '/^v[0-9\.]*$$/s/^v//p' -e d | tail -1) ; fi ; \
+		echo "nss-altfiles-$$V.tar.xz" ; \
+		git archive --prefix=nss-altfiles-$$V/ v$$V | xz -9c > nss-altfiles-$$V.tar.xz
+
+.PHONY: distclean install dist

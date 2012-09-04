@@ -40,7 +40,6 @@ distclean: clean
 install: $T
 	install -m 755 -d $(DESTDIR)$(PREFIX)/lib
 	install -m 755 $T $(DESTDIR)$(PREFIX)/lib
-	ln -s $T $(DESTDIR)$(PREFIX)/lib/$(patsubst %.2,%,$T)
 
 export VERSION
 dist:

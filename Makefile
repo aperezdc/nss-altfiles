@@ -4,7 +4,6 @@
 
 -include config.mk
 
-T := libnss_altfiles.so.2
 O := files-pwd.o \
      files-grp.o \
      files-have_o_cloexec.o
@@ -15,6 +14,12 @@ CPPFLAGS += -D_GNU_SOURCE
 
 ifneq ($(strip $(DATADIR)),)
   CPPFLAGS += -DALTFILES_DATADIR='"$(DATADIR)"'
+endif
+ifneq ($(strip $(MODULE_NAME)),)
+  CPPFLAGS += -DALTFILES_MODULE_NAME=$(MODULE_NAME)
+  T := libnss_$(MODULE_NAME).so.2
+else
+  T := libnss_altfiles.so.2
 endif
 
 # Support getting the number of parallel jobs via Build-API

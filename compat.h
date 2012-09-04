@@ -27,5 +27,9 @@ extern int __have_o_cloexec;
 #define ALTFILES_DATADIR "/lib"
 #endif /* !ALTFILES_DATADIR */
 
+#ifndef ALTFILES_MODULE_NAME
+#define ALTFILES_MODULE_NAME altfiles
+#endif /* !ALTFILES_MODULE_NAME */
+
 #endif /* !__compat_h__ */
 

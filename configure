@@ -11,9 +11,11 @@ for var in "$@" ; do
 		usage: $0 [--options]
 		Available options:
 
+		  --help          This help message.
 		  --prefix=PATH   Installation path prefix [default: /]
 		  --datadir=PATH  Path for runtime data files [default: prefix/lib/]
-		  --help          This help message.
+		  --with-module-name=NAME
+		                  Specify an alternate name for the module [default: altfiles]
 
 		Also, the following relevant environment variables can be set
 		EOF
@@ -44,6 +46,11 @@ for var in "$@" ; do
 			var=`echo "${var}" | sed 's/^--datadir=//'`
 			echo "Setting DATADIR=${var}"
 			echo "DATADIR := ${var}" >> config.mk
+			;;
+		--with-module-name=*)
+			var=`echo "${var}" | sed 's/^--with-module-name=//'`
+			echo "Setting MODULE_NAME=${var}"
+			echo "MODULE_NAME := ${var}" >> config.mk
 			;;
 		*)
 			true

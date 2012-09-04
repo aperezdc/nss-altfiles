@@ -128,7 +128,7 @@ internal_setent (int stayopen)
 
 /* Thread-safe, exported version of that.  */
 enum nss_status
-CONCAT(_nss_altfiles_set,ENTNAME) (int stayopen)
+CONCAT(CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _set), ENTNAME) (int stayopen)
 {
   enum nss_status status;
 
@@ -165,7 +165,7 @@ internal_endent (void)
 
 /* Thread-safe, exported version of that.  */
 enum nss_status
-CONCAT(_nss_altfiles_end,ENTNAME) (void)
+CONCAT(CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _end), ENTNAME) (void)
 {
   __libc_lock_lock (lock);
 
@@ -242,7 +242,7 @@ internal_getent (struct STRUCTURE *result,
 
 /* Return the next entry from the database file, doing locking.  */
 enum nss_status
-CONCAT(_nss_altfiles_get,ENTNAME_r) (struct STRUCTURE *result, char *buffer,
+CONCAT(CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _get), ENTNAME_r) (struct STRUCTURE *result, char *buffer,
 				  size_t buflen, int *errnop H_ERRNO_PROTO)
 {
   /* Return next entry in host file.  */
@@ -314,7 +314,7 @@ CONCAT(_nss_altfiles_get,ENTNAME_r) (struct STRUCTURE *result, char *buffer,
 
 #define DB_LOOKUP(name, keysize, keypattern, break_if_match, proto...)	      \
 enum nss_status								      \
-_nss_altfiles_get##name##_r (proto,					      \
+CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _get ## name ## _r) (proto,	      \
 			  struct STRUCTURE *result, char *buffer,	      \
 			  size_t buflen, int *errnop H_ERRNO_PROTO)	      \
 {									      \

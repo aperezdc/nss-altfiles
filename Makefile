@@ -8,8 +8,8 @@ O := files-pwd.o \
      files-grp.o \
      files-have_o_cloexec.o
 
-CFLAGS   += $(EXTRA_CFLAGS)   -pthread -fpic
-LDFLAGS  += $(EXTRA_CXXFLAGS) -pthread -fpic -lpthread -Wl,-soname,$T
+CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic
+LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -nostdlib -lpthread
 CPPFLAGS += -D_GNU_SOURCE
 
 ifneq ($(strip $(DATADIR)),)
@@ -32,7 +32,7 @@ endif
 all: $T
 
 $T: $O
-	gcc -shared -o $@ $^ $(LDFLAGS)
+	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
 files-grp.o files-pwd.o: files-XXX.c files-parse.c compat.h
 

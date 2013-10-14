@@ -1,0 +1,28 @@
+#! /bin/bash
+#
+# dlfiles
+# Copyright (C) 2013 Adrian Perez <aperez@igalia.com>
+#
+# Distributed under terms of the MIT license.
+#
+branch=${1/\./_}
+revision=$2
+files=(
+	files-XXX.c
+	files-grp.c
+	files-have_o_cloexec.c
+	files-parse.c
+	files-pwd.c
+)
+
+if [[ $# -ne 2 ]] ; then
+	cat <<-EOF
+	Usage: $0 branch revision
+	EOF
+	exit 1
+fi 1>&2
+
+for i in ${files[@]} ; do
+	wget -O "$i" \
+		"http://www.eglibc.org/cgi-bin/viewvc.cgi/branches/eglibc-${branch}/libc/nss/nss_files/${i}?revision=${revision}"
+done

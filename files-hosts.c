@@ -25,8 +25,8 @@
 
 
 /* Get implementation for some internal functions.  */
-#include "../resolv/mapv4v6addr.h"
-#include "../resolv/res_hconf.h"
+#include "mapv4v6addr.h"
+#include "res_hconf.h"
 
 
 #define ENTNAME		hostent
@@ -101,7 +101,7 @@ LINE_PARSER
 
 #define HOST_DB_LOOKUP(name, keysize, keypattern, break_if_match, proto...) \
 enum nss_status								      \
-_nss_files_get##name##_r (proto,					      \
+ALTFILES_SYMBOL1(_get##name##_r) (proto,				      \
 			  struct STRUCTURE *result, char *buffer,	      \
 			  size_t buflen, int *errnop H_ERRNO_PROTO)	      \
 {									      \
@@ -367,7 +367,7 @@ DB_LOOKUP (hostbyaddr, ,,,
 
 
 enum nss_status
-_nss_files_gethostbyname4_r (const char *name, struct gaih_addrtuple **pat,
+ALTFILES_SYMBOL1(_gethostbyname4_r) (const char *name, struct gaih_addrtuple **pat,
 			     char *buffer, size_t buflen, int *errnop,
 			     int *herrnop, int32_t *ttlp)
 {

@@ -6,9 +6,17 @@
 
 O := files-pwd.o \
      files-grp.o \
+     files-hosts.o \
+     files-network.o \
+     files-proto.o \
+     files-pwd.o \
+     files-rpc.o \
+     files-service.o \
+     files-sgrp.o \
+     files-spwd.o \
      files-have_o_cloexec.o
 
-CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic
+CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic -std=gnu99 -Wall
 LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -nostdlib -lpthread
 CPPFLAGS += -D_GNU_SOURCE
 
@@ -34,7 +42,8 @@ all: $T
 $T: $O
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
-files-grp.o files-pwd.o: files-XXX.c files-parse.c compat.h
+$O: files-XXX.c files-parse.c compat.h
+files-hosts.o: mapv4v6addr.h  res_hconf.h
 
 clean:
 	$(RM) $O $T

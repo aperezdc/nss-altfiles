@@ -17,7 +17,11 @@ for var in "$@" ; do
 		  --with-module-name=NAME
 		                  Specify an alternate name for the module [default: altfiles]
 
-		Also, the following relevant environment variables can be set
+		Also, the following relevant environment variables can be set:
+
+		  CFLAGS    Additional command line flags to be pased to the C compiler
+		  CXXFLAGS  Additional command line flags to be pased to the C++ compiler
+
 		EOF
 		exit
 	fi

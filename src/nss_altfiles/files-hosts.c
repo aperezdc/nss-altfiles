@@ -116,7 +116,7 @@ DB_LOOKUP (hostbyaddr, ,,,
 #undef EXTRA_ARGS_VALUE
 
 enum nss_status
-CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _gethostbyname3_r) (const char *name, int af, struct hostent *result,
+ALTFILES_SYMBOL1(_gethostbyname3_r) (const char *name, int af, struct hostent *result,
 			     char *buffer, size_t buflen, int *errnop,
 			     int *herrnop, int32_t *ttlp, char **canonp)
 {
@@ -354,27 +354,27 @@ CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _gethostbyname3_r) (const char *name
 }
 
 enum nss_status
-CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _gethostbyname_r) (const char *name, struct hostent *result,
+ALTFILES_SYMBOL1(_gethostbyname_r) (const char *name, struct hostent *result,
 			    char *buffer, size_t buflen, int *errnop,
 			    int *herrnop)
 {
   int af = ((_res.options & RES_USE_INET6) ? AF_INET6 : AF_INET);
 
-  return CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _gethostbyname3_r) (name, af, result, buffer, buflen,
+  return ALTFILES_SYMBOL1(_gethostbyname3_r) (name, af, result, buffer, buflen,
 				      errnop, herrnop, NULL, NULL);
 }
 
 enum nss_status
-CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _gethostbyname2_r) (const char *name, int af, struct hostent *result,
+ALTFILES_SYMBOL1(_gethostbyname2_r) (const char *name, int af, struct hostent *result,
 			     char *buffer, size_t buflen, int *errnop,
 			     int *herrnop)
 {
-  return CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _gethostbyname3_r) (name, af, result, buffer, buflen,
+  return ALTFILES_SYMBOL1(_gethostbyname3_r) (name, af, result, buffer, buflen,
 				      errnop, herrnop, NULL, NULL);
 }
 
 enum nss_status
-CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _gethostbyname4_r) (const char *name, struct gaih_addrtuple **pat,
+ALTFILES_SYMBOL1(_gethostbyname4_r) (const char *name, struct gaih_addrtuple **pat,
 			     char *buffer, size_t buflen, int *errnop,
 			     int *herrnop, int32_t *ttlp)
 {

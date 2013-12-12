@@ -73,7 +73,7 @@ struct parser_data
 #else
 /* Export the line parser function so it can be used in nss_db.  */
 # define parser_stclass /* Global */
-# define parse_line CONCAT(CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _parse_), ENTNAME)
+# define parse_line ALTFILES_SYMBOL2(_parse_,ENTNAME)
 # define nss_files_parse_hidden_def(name)
 #endif
 

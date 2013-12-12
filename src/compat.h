@@ -48,5 +48,12 @@ extern int __have_o_cloexec;
 #define ALTFILES_MODULE_NAME altfiles
 #endif /* !ALTFILES_MODULE_NAME */
 
+#define __ALTFILES_SYMBOL1(n,a)		_nss_ ## n ## a
+#define __ALTFILES_SYMBOL2(n,a,b)	_nss_ ## n ## a ## b
+#define _ALTFILES_SYMBOL1(n,a)    	__ALTFILES_SYMBOL1(n,a)
+#define _ALTFILES_SYMBOL2(n,a,b)  	__ALTFILES_SYMBOL2(n,a,b)
+#define ALTFILES_SYMBOL1(a)     _ALTFILES_SYMBOL1(ALTFILES_MODULE_NAME,a)
+#define ALTFILES_SYMBOL2(a,b)   _ALTFILES_SYMBOL2(ALTFILES_MODULE_NAME,a,b)
+
 #endif /* !__compat_h__ */
 

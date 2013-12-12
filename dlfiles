@@ -5,24 +5,25 @@
 #
 # Distributed under terms of the MIT license.
 #
+
+set -eu
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+	echo "Usage: $0 branch [revision]" >&2
+	exit 1
+fi
+
 branch=${1/\./_}
-revision=$2
-files=(
-	files-XXX.c
-	files-grp.c
-	files-have_o_cloexec.c
-	files-parse.c
-	files-pwd.c
+revision=${2:-HEAD}
+svn_prefix="http://www.eglibc.org/svn/branches/eglibc-${branch}/libc"
+svn_urls=(
+	"${svn_prefix}/nss/nss_files/"
+	"${svn_prefix}/resolv/mapv4v6addr.h"
+	"${svn_prefix}/resolv/res_hconf.h"
 )
 
-if [[ $# -ne 2 ]] ; then
-	cat <<-EOF
-	Usage: $0 branch revision
-	EOF
-	exit 1
-fi 1>&2
-
-for i in ${files[@]} ; do
-	wget -O "$i" \
-		"http://www.eglibc.org/cgi-bin/viewvc.cgi/branches/eglibc-${branch}/libc/nss/nss_files/${i}?revision=${revision}"
+for url in "${svn_urls[@]}"; do
+	svn export --force -r "${revision}" "${url}"
 done
+mv nss_files/* ./
+rmdir nss_files

@@ -49,6 +49,11 @@ for var in "$@" ; do
 			echo "Setting PREFIX=${var}"
 			echo "PREFIX := ${var}" >> config.mk
 			;;
+		--libdir=*)
+			var=`echo "${var}" | sed 's/^--libdir=//'`
+			echo "Setting LIBDIR=${var}"
+			echo "LIBDIR := ${var}" >> config.mk
+			;;
 		--datadir=*)
 			var=`echo "${var}" | sed 's/^--datadir=//'`
 			echo "Setting DATADIR=${var}"

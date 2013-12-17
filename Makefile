@@ -3,6 +3,7 @@
 #
 
 -include config.mk
+LIBDIR ?= $(PREFIX)/lib
 
 O := files-pwd.o \
      files-grp.o \
@@ -43,8 +44,8 @@ distclean: clean
 	$(RM) config.mk
 
 install: $T
-	install -m 755 -d $(DESTDIR)$(PREFIX)/lib
-	install -m 755 $T $(DESTDIR)$(PREFIX)/lib
+	install -m 755 -d $(DESTDIR)$(LIBDIR)
+	install -m 755 $T $(DESTDIR)$(LIBDIR)
 
 export VERSION
 dist:

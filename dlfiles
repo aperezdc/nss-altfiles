@@ -22,4 +22,8 @@ do_export() {
 }
 
 do_export nss/nss_files src/nss_altfiles
+do_export grp src/grp
+do_export gshadow src/gshadow
+do_export pwd src/pwd
 do_export resolv src/resolv
+do_export shadow src/shadow

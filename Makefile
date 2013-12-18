@@ -14,7 +14,11 @@ O := src/nss_altfiles/files-pwd.o \
      src/nss_altfiles/files-service.o \
      src/nss_altfiles/files-sgrp.o \
      src/nss_altfiles/files-spwd.o \
-     src/nss_altfiles/files-have_o_cloexec.o
+     src/nss_altfiles/files-have_o_cloexec.o \
+     src/grp/fgetgrent_r.o \
+	 src/gshadow/sgetsgent_r.o \
+     src/pwd/fgetpwent_r.o \
+	 src/shadow/sgetspent_r.o
 
 CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic -std=gnu99 -Wall
 LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -lpthread

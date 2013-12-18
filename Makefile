@@ -17,7 +17,7 @@ O := src/nss_altfiles/files-pwd.o \
      src/nss_altfiles/files-have_o_cloexec.o
 
 CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic -std=gnu99 -Wall
-LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -nostdlib -lpthread
+LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -lpthread
 CPPFLAGS += -D_GNU_SOURCE
 
 ifneq ($(strip $(DATADIR)),)

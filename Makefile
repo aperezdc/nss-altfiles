@@ -4,17 +4,17 @@
 
 -include config.mk
 
-O := files-pwd.o \
-     files-grp.o \
-     files-hosts.o \
-     files-network.o \
-     files-proto.o \
-     files-pwd.o \
-     files-rpc.o \
-     files-service.o \
-     files-sgrp.o \
-     files-spwd.o \
-     files-have_o_cloexec.o
+O := src/nss_altfiles/files-pwd.o \
+     src/nss_altfiles/files-grp.o \
+     src/nss_altfiles/files-hosts.o \
+     src/nss_altfiles/files-network.o \
+     src/nss_altfiles/files-proto.o \
+     src/nss_altfiles/files-pwd.o \
+     src/nss_altfiles/files-rpc.o \
+     src/nss_altfiles/files-service.o \
+     src/nss_altfiles/files-sgrp.o \
+     src/nss_altfiles/files-spwd.o \
+     src/nss_altfiles/files-have_o_cloexec.o
 
 CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic -std=gnu99 -Wall
 LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -nostdlib -lpthread
@@ -42,8 +42,8 @@ all: $T
 $T: $O
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
-$O: files-XXX.c files-parse.c compat.h
-files-hosts.o: mapv4v6addr.h  res_hconf.h
+$O: src/nss_altfiles/files-XXX.c src/nss_altfiles/files-parse.c src/compat.h
+src/nss_altfiles/files-hosts.o: src/resolv/mapv4v6addr.h  src/resolv/res_hconf.h
 
 clean:
 	$(RM) $O $T

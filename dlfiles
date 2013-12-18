@@ -16,14 +16,10 @@ fi
 branch=${1/\./_}
 revision=${2:-HEAD}
 svn_prefix="http://www.eglibc.org/svn/branches/eglibc-${branch}/libc"
-svn_urls=(
-	"${svn_prefix}/nss/nss_files/"
-	"${svn_prefix}/resolv/mapv4v6addr.h"
-	"${svn_prefix}/resolv/res_hconf.h"
-)
 
-for url in "${svn_urls[@]}"; do
-	svn export --force -r "${revision}" "${url}"
-done
-mv nss_files/* ./
-rmdir nss_files
+do_export() {
+    svn export --force -r "${revision}" "${svn_prefix}/$1" $2
+}
+
+do_export nss/nss_files src/nss_altfiles
+do_export resolv src/resolv

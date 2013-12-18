@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
-#include "compat.h"
+#include "../compat.h"
 
 /* These symbols are defined by the including source file:
 

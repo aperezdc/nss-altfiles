@@ -36,6 +36,9 @@
 #define __strcasecmp(s1, s2) \
     strcasecmp(s1, s2)
 
+#define __glibc_unlikely(cond) __builtin_expect ((cond), 0)
+#define __glibc_likely(cond)   __builtin_expect ((cond), 1)
+
 extern int __have_o_cloexec;
 
 #ifndef ALTFILES_DATADIR

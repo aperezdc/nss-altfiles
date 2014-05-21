@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2013 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -62,3 +62,46 @@ LINE_PARSER
      result->pw_shell = line;
    }
  )
+
+
+/* Read one entry from the given stream.  */
+int
+__fgetpwent_r (FILE *stream, struct passwd *resbuf, char *buffer,
+	       size_t buflen, struct passwd **result)
+{
+  char *p;
+
+  flockfile (stream);
+  do
+    {
+      buffer[buflen - 1] = '\xff';
+      p = fgets_unlocked (buffer, buflen, stream);
+      if (p == NULL && feof_unlocked (stream))
+	{
+	  funlockfile (stream);
+	  *result = NULL;
+	  __set_errno (ENOENT);
+	  return errno;
+	}
+      if (p == NULL || buffer[buflen - 1] != '\xff')
+	{
+	  funlockfile (stream);
+	  *result = NULL;
+	  __set_errno (ERANGE);
+	  return errno;
+	}
+
+      /* Skip leading blanks.  */
+      while (isspace (*p))
+	++p;
+    } while (*p == '\0' || *p == '#' ||	/* Ignore empty and comment lines.  */
+	     /* Parse the line.  If it is invalid, loop to
+		get the next line of the file to parse.  */
+	     ! parse_line (p, resbuf, (void *) buffer, buflen, &errno));
+
+  funlockfile (stream);
+
+  *result = resbuf;
+  return 0;
+}
+weak_alias (__fgetpwent_r, fgetpwent_r)

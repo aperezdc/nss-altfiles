@@ -1,4 +1,4 @@
-/* Copyright (C) 2009-2013 Free Software Foundation, Inc.
+/* Copyright (C) 2009-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -48,3 +48,27 @@ LINE_PARSER
      STRING_LIST (result->sg_adm, ':');
    }
  )
+
+
+/* Read one shadow entry from the given stream.  */
+int
+__sgetsgent_r (const char *string, struct sgrp *resbuf, char *buffer,
+	       size_t buflen, struct sgrp **result)
+{
+  char *sp;
+  if (string < buffer || string >= buffer + buflen)
+    {
+      buffer[buflen - 1] = '\0';
+      sp = strncpy (buffer, string, buflen);
+      if (buffer[buflen - 1] != '\0')
+	return ERANGE;
+    }
+  else
+    sp = (char *) string;
+
+  int parse_result = parse_line (sp, resbuf, (void *) buffer, buflen, &errno);
+  *result = parse_result > 0 ? resbuf : NULL;
+
+  return *result == NULL ? errno : 0;
+}
+weak_alias (__sgetsgent_r, sgetsgent_r)

@@ -1,5 +1,5 @@
 /* Common code for file-based database parsers in nss_files module.
-   Copyright (C) 1996-2013 Free Software Foundation, Inc.
+   Copyright (C) 1996-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -71,9 +71,9 @@ struct parser_data
 # define parser_stclass static
 # define nss_files_parse_hidden_def(name)
 #else
-/* Export the line parser function so it can be shared.  */
+/* Export the line parser function so it can be used in nss_db.  */
 # define parser_stclass /* Global */
-# define parse_line ALTFILES_SYMBOL2(_parse_,ENTNAME)
+# define parse_line CONCAT(CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _parse_), ENTNAME)
 # define nss_files_parse_hidden_def(name)
 #endif
 

@@ -5,24 +5,25 @@
 #
 # Distributed under terms of the MIT license.
 #
-branch=${1/\./_}
-revision=$2
-files=(
-	files-XXX.c
-	files-grp.c
-	files-have_o_cloexec.c
-	files-parse.c
-	files-pwd.c
-)
 
-if [[ $# -ne 2 ]] ; then
-	cat <<-EOF
-	Usage: $0 branch revision
-	EOF
+set -eu
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+	echo "Usage: $0 branch [revision]" >&2
 	exit 1
-fi 1>&2
+fi
 
-for i in ${files[@]} ; do
-	wget -O "$i" \
-		"http://www.eglibc.org/cgi-bin/viewvc.cgi/branches/eglibc-${branch}/libc/nss/nss_files/${i}?revision=${revision}"
-done
+branch=${1/\./_}
+revision=${2:-HEAD}
+svn_prefix="http://www.eglibc.org/svn/branches/eglibc-${branch}/libc"
+
+do_export() {
+    svn export --force -r "${revision}" "${svn_prefix}/$1" $2
+}
+
+do_export nss/nss_files src/nss_altfiles
+do_export grp src/grp
+do_export gshadow src/gshadow
+do_export pwd src/pwd
+do_export resolv src/resolv
+do_export shadow src/shadow

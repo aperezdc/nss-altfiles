@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "../compat.h"
 
 /* These symbols are defined by the including source file:
 
@@ -70,16 +71,10 @@ struct parser_data
 # define parser_stclass static
 # define nss_files_parse_hidden_def(name)
 #else
-/* Export the line parser function so it can be used in nss_db.  */
+/* Export the line parser function so it can be shared.  */
 # define parser_stclass /* Global */
-# define parse_line CONCAT(_nss_files_parse_,ENTNAME)
-# ifdef IS_IN_libc
-/* We are defining one of the functions that actually lives in libc
-   because it is used to implement fget*ent and suchlike.  */
-#  define nss_files_parse_hidden_def(name) libc_hidden_def (name)
-# else
-#  define nss_files_parse_hidden_def(name) libnss_files_hidden_def (name)
-# endif
+# define parse_line ALTFILES_SYMBOL2(_parse_,ENTNAME)
+# define nss_files_parse_hidden_def(name)
 #endif
 
 

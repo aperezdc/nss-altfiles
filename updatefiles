@@ -1,0 +1,40 @@
+#! /bin/bash
+#
+# dlfiles
+# Copyright (C) 2013-2014 Adrian Perez <aperez@igalia.com>
+#
+# Distributed under terms of the MIT license.
+#
+set -eu
+
+declare -r DIST_URL_BASE='http://ftp.gnu.org/gnu/glibc/'
+
+if [[ $# -ne 1 ]] ; then
+	cat <<-EOF
+	Usage: $0 version
+	EOF
+	exit 1
+fi 1>&2
+
+PV_BIN=$(type -P pv)
+if [[ -n ${PV_BIN} ]] ; then
+	pvcat () { "${PV_BIN}" -p -e -a "$1"; }
+else
+	pvcat () { cat "$1"; }
+fi
+
+version=$1
+
+if [[ ! -d glibc-${version} ]] ; then
+	if [[ ! -r glibc-${version}.tar.xz ]] ; then
+		wget "${DIST_URL_BASE}/glibc-${version}.tar.xz"
+	fi
+	echo "Unpacking glibc-${version}.tar.xz ..."
+	pvcat glibc-${version}.tar.xz | tar -xJf -
+fi
+
+for dst_file in src/*/*.c ; do
+	dst_file_name=${dst_file##*/}
+	src_file=$(find "glibc-${version}" -name "${dst_file_name}")
+	cp -v "${src_file}" "${dst_file}"
+done

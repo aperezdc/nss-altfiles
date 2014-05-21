@@ -1,16 +1,29 @@
 # vim: filetype=make
-# Adrian Perez, 2012-08-29 13:09
+# Adrian Perez, 2014-05-21
 #
 
 -include config.mk
+
 LIBDIR ?= $(PREFIX)/lib
 
-O := files-pwd.o \
-     files-grp.o \
-     files-have_o_cloexec.o
+O := src/nss_altfiles/files-pwd.o \
+     src/nss_altfiles/files-grp.o \
+     src/nss_altfiles/files-hosts.o \
+     src/nss_altfiles/files-network.o \
+     src/nss_altfiles/files-proto.o \
+     src/nss_altfiles/files-pwd.o \
+     src/nss_altfiles/files-rpc.o \
+     src/nss_altfiles/files-service.o \
+     src/nss_altfiles/files-sgrp.o \
+     src/nss_altfiles/files-spwd.o \
+     src/nss_altfiles/files-have_o_cloexec.o \
+     src/grp/fgetgrent_r.o \
+     src/gshadow/sgetsgent_r.o \
+     src/pwd/fgetpwent_r.o \
+     src/shadow/sgetspent_r.o
 
-CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic
-LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -nostdlib -lpthread
+CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic -std=gnu99 -Wall
+LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -lpthread
 CPPFLAGS += -D_GNU_SOURCE
 
 ifneq ($(strip $(DATADIR)),)
@@ -35,7 +48,8 @@ all: $T
 $T: $O
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
 
-files-grp.o files-pwd.o: files-XXX.c files-parse.c compat.h
+$O: src/nss_altfiles/files-XXX.c src/nss_altfiles/files-parse.c src/compat.h
+src/nss_altfiles/files-hosts.o: src/resolv/mapv4v6addr.h  src/resolv/res_hconf.h
 
 clean:
 	$(RM) $O $T

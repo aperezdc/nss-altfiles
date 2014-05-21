@@ -1,3 +1,5 @@
 *.so*
 *.o
 .*.sw[op]
+glibc-*/
+glibc-*.tar.xz

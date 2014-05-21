@@ -3,3 +3,4 @@
 .*.sw[op]
 glibc-*/
 glibc-*.tar.xz
+config.mk

@@ -27,10 +27,10 @@ LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -lpthread
 CPPFLAGS += -D_GNU_SOURCE
 
 ifneq ($(strip $(DATADIR)),)
-  CPPFLAGS += -DALTFILES_DATADIR='"$(DATADIR)"'
+  CPPFLAGS += -DALTFILES_DATADIR='"$(strip $(DATADIR))"'
 endif
 ifneq ($(strip $(MODULE_NAME)),)
-  CPPFLAGS += -DALTFILES_MODULE_NAME=$(MODULE_NAME)
+  CPPFLAGS += -DALTFILES_MODULE_NAME=$(strip $(MODULE_NAME))
   T := libnss_$(MODULE_NAME).so.2
 else
   T := libnss_altfiles.so.2

@@ -16,6 +16,22 @@ for var in "$@" ; do
 		  --datadir=PATH  Path for runtime data files [default: prefix/lib/]
 		  --with-module-name=NAME
 		                  Specify an alternate name for the module [default: altfiles]
+		  --with-types=TYPE1,TYPE2,...
+		                  Specify the list of NSS types that the module will
+		                  handle. Use "all" to support all types.
+		                  [default: pwd,grp]
+
+		Available NSS types and their corresponding data files:
+
+		  rpc        \$DATADIR/rpc
+		  proto      \$DATADIR/protocols
+		  hosts      \$DATADIR/hosts
+		  network    \$DATADIR/networks
+		  service    \$DATADIR/services
+		  pwd        \$DATADIR/passwd
+		  grp        \$DATADIR/group
+		  spwd       \$DATADIR/shadow
+		  sgrp       \$DATADIR/gshadow
 
 		Also, the following relevant environment variables can be set:
 
@@ -63,6 +79,19 @@ for var in "$@" ; do
 			var=`echo "${var}" | sed 's/^--with-module-name=//'`
 			echo "Setting MODULE_NAME=${var}"
 			echo "MODULE_NAME := ${var}" >> config.mk
+			;;
+		--with-types=*)
+      var=`echo "${var}" | sed 's/^--with-types=//'`
+      if [ "${var}" = "all" ] ; then
+				# Pick all supported types from the conditionals in the Makefile
+				var=`sed 's/.\+$(HANDLE_\([a-z]\+\)).*/\1/p;d' Makefile | paste -s -d ','`
+			fi
+      echo "Setting TYPES=${var}"
+			# By default pwd and grp are enabled, so clear their values before
+			# adding the ones passed to --with-types=
+			echo "HANDLE_pwd :=" >> config.mk
+			echo "HANDLE_grp :=" >> config.mk
+			echo ",${var}" | sed 's/,\([^,]\+\)/HANDLE_\1 := 1\n/g' >> config.mk
 			;;
 		*)
 			true

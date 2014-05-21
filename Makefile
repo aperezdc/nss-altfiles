@@ -6,21 +6,21 @@
 
 LIBDIR ?= $(PREFIX)/lib
 
-O := src/nss_altfiles/files-pwd.o \
-     src/nss_altfiles/files-grp.o \
-     src/nss_altfiles/files-hosts.o \
-     src/nss_altfiles/files-network.o \
-     src/nss_altfiles/files-proto.o \
-     src/nss_altfiles/files-pwd.o \
-     src/nss_altfiles/files-rpc.o \
-     src/nss_altfiles/files-service.o \
-     src/nss_altfiles/files-sgrp.o \
-     src/nss_altfiles/files-spwd.o \
-     src/nss_altfiles/files-have_o_cloexec.o \
-     src/grp/fgetgrent_r.o \
-     src/gshadow/sgetsgent_r.o \
-     src/pwd/fgetpwent_r.o \
-     src/shadow/sgetspent_r.o
+# By default, only pwd/grp are handled
+HANDLE_pwd ?= 1
+HANDLE_grp ?= 1
+
+# Choose object depending on the HANDLE_foo variables
+O := $(if $(HANDLE_rpc),     src/nss_altfiles/files-rpc.o)  \
+     $(if $(HANDLE_proto),   src/nss_altfiles/files-proto.o) \
+     $(if $(HANDLE_hosts),   src/nss_altfiles/files-hosts.o)  \
+     $(if $(HANDLE_network), src/nss_altfiles/files-network.o) \
+     $(if $(HANDLE_service), src/nss_altfiles/files-service.o)  \
+     $(if $(HANDLE_pwd),     src/nss_altfiles/files-pwd.o  src/pwd/fgetpwent_r.o)  \
+     $(if $(HANDLE_grp),     src/nss_altfiles/files-grp.o  src/grp/fgetgrent_r.o)   \
+     $(if $(HANDLE_spwd),    src/nss_altfiles/files-spwd.o src/shadow/sgetspent_r.o) \
+     $(if $(HANDLE_sgrp),    src/nss_altfiles/files-sgrp.o src/gshadow/sgetsgent_r.o) \
+     src/nss_altfiles/files-have_o_cloexec.o
 
 CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic -std=gnu99 -Wall
 LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -lpthread
@@ -52,7 +52,8 @@ $O: src/nss_altfiles/files-XXX.c src/nss_altfiles/files-parse.c src/compat.h
 src/nss_altfiles/files-hosts.o: src/resolv/mapv4v6addr.h  src/resolv/res_hconf.h
 
 clean:
-	$(RM) $O $T
+	find src -name '*.o' -delete
+	$(RM) $T
 
 distclean: clean
 	$(RM) config.mk

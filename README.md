@@ -1,6 +1,8 @@
 NSS altfiles module
 ===================
 
+[![Build Status](https://drone.io/github.com/aperezdc/nss-altfiles/status.png)](https://drone.io/github.com/aperezdc/nss-altfiles/latest)
+
 This is a NSS module which can read user information from files
 in the same format as `/etc/passwd` and `/etc/group` stored in an
 alternate location (`/lib` by default).

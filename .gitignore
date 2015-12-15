@@ -1,3 +1,4 @@
+nss-altfiles-config
 *.so*
 *.o
 .*.sw[op]

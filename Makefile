@@ -43,7 +43,7 @@ ifneq ($(strip $(BUILDAPI_JOBS)),)
   MAKEOPTS += -j$(BUILDAPI_JOBS)
 endif
 
-all: $T
+all: $T nss-altfiles-config
 
 $T: $O
 	$(CC) -shared -o $@ $^ $(LDFLAGS)
@@ -51,9 +51,12 @@ $T: $O
 $O: src/nss_altfiles/files-XXX.c src/nss_altfiles/files-parse.c src/compat.h
 src/nss_altfiles/files-hosts.o: src/resolv/mapv4v6addr.h  src/resolv/res_hconf.h
 
+nss-altfiles-config: src/main.o
+	$(CC) -o $@ $^
+
 clean:
 	find src -name '*.o' -delete
-	$(RM) $T
+	$(RM) $T nss-altfiles-config
 
 distclean: clean
 	$(RM) config.mk

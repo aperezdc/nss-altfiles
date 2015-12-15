@@ -134,7 +134,7 @@ CONCAT(CONCAT(CONCAT(_nss_, ALTFILES_MODULE_NAME), _set), ENTNAME) (int stayopen
 
   __libc_lock_lock (lock);
 
-  status = internal_setent (stayopen);
+  status = internal_setent (1);
 
   if (status == NSS_STATUS_SUCCESS && fgetpos (stream, &position) < 0)
     {

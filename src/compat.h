@@ -14,8 +14,6 @@
 #include <strings.h>
 #include <limits.h>
 
-#define weak_alias(a, b)  /* Nothing */
-
 #define __set_errno(errval) \
     (errno = (errval))
 

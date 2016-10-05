@@ -83,21 +83,3 @@ LINE_PARSER
        }
    }
  )
-
-
-/* Read one shadow entry from the given stream.  */
-int
-__sgetspent_r (const char *string, struct spwd *resbuf, char *buffer,
-	       size_t buflen, struct spwd **result)
-{
-  buffer[buflen - 1] = '\0';
-  char *sp = strncpy (buffer, string, buflen);
-  if (buffer[buflen - 1] != '\0')
-    return ERANGE;
-
-  int parse_result = parse_line (sp, resbuf, NULL, 0, &errno);
-  *result = parse_result > 0 ? resbuf : NULL;
-
-  return *result == NULL ? errno : 0;
-}
-weak_alias (__sgetspent_r, sgetspent_r)

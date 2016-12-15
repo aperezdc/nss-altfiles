@@ -52,7 +52,7 @@ $O: src/nss_altfiles/files-XXX.c src/nss_altfiles/files-parse.c src/compat.h
 src/nss_altfiles/files-hosts.o: src/resolv/mapv4v6addr.h  src/resolv/res_hconf.h
 
 nss-altfiles-config: src/main.o
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
 	find src -name '*.o' -delete

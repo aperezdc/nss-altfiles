@@ -97,11 +97,19 @@ LINE_PARSER
    STRING_FIELD (result->h_name, isspace, 1);
  })
 
+#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 30
+#define EXTRA_ARGS_VALUE \
+  , AF_INET,             \
+  0
+#include "files-XXX.c"
+#undef EXTRA_ARGS_VALUE
+#else
 #define EXTRA_ARGS_VALUE \
   , ((_res.options & RES_USE_INET6) ? AF_INET6 : AF_INET),		      \
   ((_res.options & RES_USE_INET6) ? AI_V4MAPPED : 0)
 #include "files-XXX.c"
 #undef EXTRA_ARGS_VALUE
+#endif
 
 /* We only need to consider IPv4 mapped addresses if the input to the
    gethostbyaddr() function is an IPv6 address.  */
@@ -132,7 +140,11 @@ ALTFILES_SYMBOL1(_gethostbyname3_r) (const char *name, int af, struct hostent *r
     {
       /* XXX Is using _res to determine whether we want to convert IPv4
          addresses to IPv6 addresses really the right thing to do?  */
+#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 30
+      int flags = 0;
+#else
       int flags = ((_res.options & RES_USE_INET6) ? AI_V4MAPPED : 0);
+#endif
 
       while ((status = internal_getent (stream, result, buffer, buflen, errnop,
 					herrnop, af, flags))
@@ -351,7 +363,11 @@ ALTFILES_SYMBOL1(_gethostbyname_r) (const char *name, struct hostent *result,
 			    char *buffer, size_t buflen, int *errnop,
 			    int *herrnop)
 {
+#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 30
+  int af = AF_INET;
+#else
   int af = ((_res.options & RES_USE_INET6) ? AF_INET6 : AF_INET);
+#endif
 
   return ALTFILES_SYMBOL1(_gethostbyname3_r) (name, af, result, buffer, buflen,
 				      errnop, herrnop, NULL, NULL);

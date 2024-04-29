@@ -1,5 +1,5 @@
-/* SunRPC program number file parser in nss_files module.
-   Copyright (C) 1996-2024 Free Software Foundation, Inc.
+/* Implementation of __nss_parse_line_result.
+   Copyright (C) 2020-2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,31 +16,31 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <rpc/netdb.h>
-#include <nss.h>
+#include "nss_files.h"
 
-#define ENTNAME		rpcent
-#define DATABASE	"rpc"
+#include <assert.h>
+#include <errno.h>
 
-struct rpcent_data {};
+int
+__nss_parse_line_result (FILE *fp, off64_t offset, int parse_line_result)
+{
+  assert (parse_line_result >= -1 && parse_line_result <= 1);
 
-#define TRAILING_LIST_MEMBER		r_aliases
-#define TRAILING_LIST_SEPARATOR_P	isspace
-#include "files-parse.c"
-LINE_PARSER
-("#",
- STRING_FIELD (result->r_name, isspace, 1);
- INT_FIELD (result->r_number, isspace, 1, 10,);
- )
+  switch (__builtin_expect (parse_line_result, 1))
+    {
+    case 1:
+      /* Success.  */
+      return 0;
+    case 0:
+      /* Parse error.  */
+      __set_errno (EINVAL);
+      return EINVAL;
+    case -1:
+      /* Out of buffer space.  */
+      return __nss_readline_seek (fp, offset);
 
-#include GENERIC
-
-DB_LOOKUP (rpcbyname, '.', 0, ("%s", name),
-	   LOOKUP_NAME (r_name, r_aliases),
-	   const char *name)
-
-DB_LOOKUP (rpcbynumber, '=', 20, ("%zd", (ssize_t) number),
-	   {
-	     if (result->r_number == number)
-	       break;
-	   }, int number)
+      default:
+        __builtin_unreachable ();
+    }
+}
+libc_hidden_def (__nss_parse_line_result)

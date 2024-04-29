@@ -2,6 +2,9 @@ nss-altfiles-config
 *.so*
 *.o
 .*.sw[op]
+compile_commands.json
+symbols.map
+symbols.ver
 glibc-*/
 glibc-*.tar.xz
 config.mk

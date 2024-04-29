@@ -1,5 +1,5 @@
 /* Common code for file-based database parsers in nss_files module.
-   Copyright (C) 1996-2016 Free Software Foundation, Inc.
+   Copyright (C) 1996-2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -14,14 +14,14 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #include <ctype.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "../compat.h"
+#include "nss_files.h"
 
 /* These symbols are defined by the including source file:
 
@@ -73,15 +73,15 @@ struct parser_data
 #else
 /* Export the line parser function so it can be used in nss_db.  */
 # define parser_stclass /* Global */
-# define parse_line ALTFILES_SYMBOL2(_parse_,ENTNAME)
-# define nss_files_parse_hidden_def(name)
+# define parse_line CONCAT(_nss_files_parse_,ENTNAME)
+# define nss_files_parse_hidden_def(name) libc_hidden_def (name)
 #endif
 
 
 #ifdef EXTERN_PARSER
 
 /* The parser is defined in a different module.  */
-extern int parse_line (char *line, struct STRUCTURE *result,
+extern int parse_line (char *line, void *result,
 		       struct parser_data *data, size_t datalen, int *errnop
 		       EXTRA_ARGS_DECL);
 
@@ -93,10 +93,11 @@ extern int parse_line (char *line, struct STRUCTURE *result,
 
 # define LINE_PARSER(EOLSET, BODY)					      \
 parser_stclass int							      \
-parse_line (char *line, struct STRUCTURE *result,			      \
+parse_line (char *line, void *generic_result,				      \
 	    struct parser_data *data, size_t datalen, int *errnop	      \
 	    EXTRA_ARGS_DECL)						      \
 {									      \
+  struct STRUCTURE *result = generic_result;				      \
   ENTDATA_DECL (data)							      \
   BUFFER_PREPARE							      \
   char *p = strpbrk (line, EOLSET "\n");				      \
@@ -238,7 +239,7 @@ parse_list (char **linep, char *eol, char *buf_end, int terminator_c,
 
   /* Adjust the pointer so it is aligned for storing pointers.  */
   eol += __alignof__ (char *) - 1;
-  eol -= (eol - (char *) 0) % __alignof__ (char *);
+  eol -= ((uintptr_t) eol) % __alignof__ (char *);
   /* We will start the storage here for the vector of pointers.  */
   list = (char **) eol;
 

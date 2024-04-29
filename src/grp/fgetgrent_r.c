@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -48,3 +48,17 @@ LINE_PARSER
        INT_FIELD (result->gr_gid, ISCOLON, 0, 10,)
    }
  )
+
+
+/* Read one entry from the given stream.  */
+int
+__fgetgrent_r (FILE *stream, struct group *resbuf, char *buffer, size_t buflen,
+	       struct group **result)
+{
+  int ret = __nss_fgetent_r (stream, resbuf, buffer, buflen, parse_line);
+  if (ret == 0)
+    *result = resbuf;
+  else
+    *result = NULL;
+  return ret;
+}

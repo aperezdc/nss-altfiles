@@ -1,0 +1,11 @@
+#! /bin/sh
+set -e
+cat <<EOF
+{
+	global:
+		_nss_$1_*;
+	local:
+		_nss_*;
+		__*;
+};
+EOF

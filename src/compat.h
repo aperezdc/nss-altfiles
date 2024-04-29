@@ -3,22 +3,50 @@
  * Copyright (C) 2012 Adrian Perez <aperez@igalia.com>
  */
 
-#ifndef __compat_h__
-#define __compat_h__
+#pragma once
 
 #include <alloca.h>
 #include <errno.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <strings.h>
 #include <limits.h>
+
+#define off64_t off_t
+#define __fseeko64 fseeko
+#define __ftello64 ftello
+#define __feof_unlocked feof_unlocked
+#define __fgets_unlocked fgets_unlocked
+#define __inet_network inet_network
+#define __inet_pton inet_pton
+
+static inline void
+fseterr_unlocked(FILE *f)
+{
+    f->_flags |= _IO_ERR_SEEN;
+}
+
+#define _IO_flockfile flockfile
+#define _IO_funlockfile funlockfile
+
+#define IS_IN(_) 0
+
+#define attribute_hidden __attribute__((visibility("hidden")))
+#define libc_hidden_proto(fn)
+#define libc_hidden_def(fn)
 
 #define __set_errno(errval) \
     (errno = (errval))
 
+#define __set_h_errno(errval) \
+    (h_errno = (errval))
+
 #define __libc_lock_define_initialized(CLASS, lockvar) \
     CLASS pthread_mutex_t lockvar = PTHREAD_MUTEX_INITIALIZER;
+
+#define __libc_lock_init
 
 #define __libc_lock_lock(lock) \
     pthread_mutex_lock (&(lock))
@@ -39,8 +67,6 @@
 #define __glibc_unlikely(cond) __builtin_expect ((cond), 0)
 #define __glibc_likely(cond)   __builtin_expect ((cond), 1)
 
-extern int __have_o_cloexec;
-
 #ifndef ALTFILES_DATADIR
 #define ALTFILES_DATADIR "/lib"
 #endif /* !ALTFILES_DATADIR */
@@ -48,13 +74,3 @@ extern int __have_o_cloexec;
 #ifndef ALTFILES_MODULE_NAME
 #define ALTFILES_MODULE_NAME altfiles
 #endif /* !ALTFILES_MODULE_NAME */
-
-#define __ALTFILES_SYMBOL1(n,a)		_nss_ ## n ## a
-#define __ALTFILES_SYMBOL2(n,a,b)	_nss_ ## n ## a ## b
-#define _ALTFILES_SYMBOL1(n,a)    	__ALTFILES_SYMBOL1(n,a)
-#define _ALTFILES_SYMBOL2(n,a,b)  	__ALTFILES_SYMBOL2(n,a,b)
-#define ALTFILES_SYMBOL1(a)     _ALTFILES_SYMBOL1(ALTFILES_MODULE_NAME,a)
-#define ALTFILES_SYMBOL2(a,b)   _ALTFILES_SYMBOL2(ALTFILES_MODULE_NAME,a,b)
-
-#endif /* !__compat_h__ */
-

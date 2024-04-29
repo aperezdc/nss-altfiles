@@ -33,8 +33,12 @@ if [[ ! -d glibc-${version} ]] ; then
 	pvcat glibc-${version}.tar.xz | tar -xJf -
 fi
 
-for dst_file in src/*/*.c ; do
+for dst_file in src/*/*.[hc] ; do
 	dst_file_name=${dst_file##*/}
 	src_file=$(find "glibc-${version}" -name "${dst_file_name}")
-	cp -v "${src_file}" "${dst_file}"
+	if [[ -z ${src_file} ]] ; then
+		echo "File '$dst_file_name' not found." 1>&2
+	else
+		cp -v "${src_file}" "${dst_file}"
+	fi
 done

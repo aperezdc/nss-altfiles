@@ -87,9 +87,7 @@ for var in "$@" ; do
       echo "Setting TYPES=${var}"
 			# By default pwd and grp are enabled, so clear their values before
 			# adding the ones passed to --with-types=
-			echo "HANDLE_pwd :=" >> config.mk
-			echo "HANDLE_grp :=" >> config.mk
-			echo ",${var}" | sed 's/,\([^,]\+\)/HANDLE_\1 := 1\n/g' >> config.mk
+			echo "HANDLE_ALL := \$(subst \$(comma), ,$var)" >> config.mk
 			;;
 		*)
 			true

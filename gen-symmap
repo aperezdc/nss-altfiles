@@ -1,0 +1,25 @@
+#! /bin/sh
+set -e
+modname=$1
+shift
+
+gen () {
+	for name in "$@" ; do
+		echo "_nss_${modname}_${name} = _nss_files_${name};"
+	done
+}
+
+for name in "$@"
+do
+	case "$name" in
+		proto  ) gen getprotoent_r getprotobyname_r getprotobynumber_r endprotoent ;;
+		hosts  ) gen gethostent_r gethostbyname_r gethostbyaddr_r endhostent ;;
+		service) gen getservent_r getservbyname_r getservbyport_r endservent ;;
+		rpc    ) gen getrpcent_r getrpcbyname_r getrpcbynumber_r endrpcent ;;
+		network) gen getnetent_r getnetbyname_r getnetbyaddr_r endnetent ;;
+		pwd    ) gen getpwent_r getpwnam_r getpwuid_r endpwent ;;
+		grp    ) gen getgrent_r getgrnam_r getgrgid_r endgrent ;;
+		shadow ) gen getspent_r getspnam_r getspuid_r endspent ;;
+		gshadow) gen getsgent_r getsgnam_r getsggid_r endsgent ;;
+	esac
+done

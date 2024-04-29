@@ -1,4 +1,4 @@
-/* Group file parser in nss_files module.
+/* List of all databases defined for the NSS in GNU C Library.
    Copyright (C) 1996-2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -16,30 +16,29 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <grp.h>
-#include <nss.h>
+/* This list must be kept sorted!!!  If any long name is added the
+   field size for it must be increases.  */
 
-#define STRUCTURE	group
-#define ENTNAME		grent
-#define DATABASE	"group"
-struct grent_data {};
+DEFINE_DATABASE (aliases)
+DEFINE_DATABASE (ethers)
+DEFINE_DATABASE (group)
+DEFINE_DATABASE (group_compat)
+DEFINE_DATABASE (gshadow)
+DEFINE_DATABASE (hosts)
+DEFINE_DATABASE (initgroups)
+DEFINE_DATABASE (netgroup)
+DEFINE_DATABASE (networks)
+DEFINE_DATABASE (passwd)
+DEFINE_DATABASE (passwd_compat)
+DEFINE_DATABASE (protocols)
+DEFINE_DATABASE (publickey)
+DEFINE_DATABASE (rpc)
+DEFINE_DATABASE (services)
+DEFINE_DATABASE (shadow)
+DEFINE_DATABASE (shadow_compat)
 
-/* Our parser function is already defined in fgetgrent.c, so use that.
-   to parse lines from the database file.  */
-#define EXTERN_PARSER
-#include "files-parse.c"
-#include GENERIC
-
-DB_LOOKUP (grnam, '.', 0, ("%s", name),
-	   {
-	     if (name[0] != '-' && name[0] != '+'
-		 && ! strcmp (name, result->gr_name))
-	       break;
-	   }, const char *name)
-
-DB_LOOKUP (grgid, '=', 20, ("%lu", (unsigned long int) gid),
-	   {
-	     if (result->gr_gid == gid && result->gr_name[0] != '+'
-		 && result->gr_name[0] != '-')
-	       break;
-	   }, gid_t gid)
+/*
+   Local Variables:
+    mode:C
+   End:
+ */

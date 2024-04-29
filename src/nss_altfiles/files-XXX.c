@@ -1,5 +1,5 @@
 /* Common code for file-based databases in nss_files module.
-   Copyright (C) 1996-2016 Free Software Foundation, Inc.
+   Copyright (C) 1996-2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -14,14 +14,14 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
-#include <nss.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
-#include "../compat.h"
+#include "nsswitch.h"
+#include "nss_files.h"
 
 /* These symbols are defined by the including source file:
 
@@ -36,16 +36,18 @@
 
 #define ENTNAME_r	CONCAT(ENTNAME,_r)
 
-#define DATAFILE	ALTFILES_DATADIR "/" DATABASE
+#define DATAFILE	"/etc/" DATABASE
 
 #ifdef NEED_H_ERRNO
 # include <netdb.h>
 # define H_ERRNO_PROTO	, int *herrnop
 # define H_ERRNO_ARG	, herrnop
+# define H_ERRNO_ARG_OR_NULL herrnop
 # define H_ERRNO_SET(val) (*herrnop = (val))
 #else
 # define H_ERRNO_PROTO
 # define H_ERRNO_ARG
+# define H_ERRNO_ARG_OR_NULL NULL
 # define H_ERRNO_SET(val) ((void) 0)
 #endif
 
@@ -55,14 +57,10 @@
 # define EXTRA_ARGS_VALUE
 #endif
 
-/* Locks the static variables in this file.  */
-__libc_lock_define_initialized (static, lock)
 
 /* Maintenance of the stream open on the database file.  For getXXent
    operations the stream needs to be held open across calls, the other
    getXXbyYY operations all use their own stream.  */
-
-static FILE *stream;
 
 /* Open database file if not already opened.  */
 static enum nss_status
@@ -72,45 +70,10 @@ internal_setent (FILE **stream)
 
   if (*stream == NULL)
     {
-      *stream = fopen (DATAFILE, "rce");
+      *stream = __nss_files_fopen (DATAFILE);
 
       if (*stream == NULL)
 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
-      else
-	{
-#if !defined O_CLOEXEC || !defined __ASSUME_O_CLOEXEC
-# ifdef O_CLOEXEC
-	  if (__have_o_cloexec <= 0)
-# endif
-	    {
-	      /* We have to make sure the file is  `closed on exec'.  */
-	      int result;
-	      int flags;
-
-	      result = flags = fcntl (fileno (*stream), F_GETFD, 0);
-	      if (result >= 0)
-		{
-# ifdef O_CLOEXEC
-		  if (__have_o_cloexec == 0)
-		    __have_o_cloexec = (flags & FD_CLOEXEC) == 0 ? -1 : 1;
-		  if (__have_o_cloexec < 0)
-# endif
-		    {
-		      flags |= FD_CLOEXEC;
-		      result = fcntl (fileno (*stream), F_SETFD, flags);
-		    }
-		}
-	      if (result < 0)
-		{
-		  /* Something went wrong.  Close the stream and return a
-		     failure.  */
-		  fclose (*stream);
-		  *stream = NULL;
-		  status = NSS_STATUS_UNAVAIL;
-		}
-	    }
-#endif
-	}
     }
   else
     rewind (*stream);
@@ -121,90 +84,19 @@ internal_setent (FILE **stream)
 
 /* Thread-safe, exported version of that.  */
 enum nss_status
-ALTFILES_SYMBOL2(_set,ENTNAME) (int stayopen)
+CONCAT(_nss_files_set,ENTNAME) (int stayopen)
 {
-  enum nss_status status;
-
-  __libc_lock_lock (lock);
-
-  status = internal_setent (&stream);
-
-  __libc_lock_unlock (lock);
-
-  return status;
+  return __nss_files_data_setent (CONCAT (nss_file_, ENTNAME), DATAFILE);
 }
+libc_hidden_def (CONCAT (_nss_files_set,ENTNAME))
 
-
-/* Close the database file.  */
-static void
-internal_endent (FILE **stream)
-{
-  if (*stream != NULL)
-    {
-      fclose (*stream);
-      *stream = NULL;
-    }
-}
-
-
-/* Thread-safe, exported version of that.  */
 enum nss_status
-ALTFILES_SYMBOL2(_end,ENTNAME) (void)
+CONCAT(_nss_files_end,ENTNAME) (void)
 {
-  __libc_lock_lock (lock);
-
-  internal_endent (&stream);
-
-  __libc_lock_unlock (lock);
-
-  return NSS_STATUS_SUCCESS;
+  return __nss_files_data_endent (CONCAT (nss_file_, ENTNAME));
 }
+libc_hidden_def (CONCAT (_nss_files_end,ENTNAME))
 
-
-typedef enum
-{
-  gcr_ok = 0,
-  gcr_error = -1,
-  gcr_overflow = -2
-} get_contents_ret;
-
-/* Hack around the fact that fgets only accepts int sizes.  */
-static get_contents_ret
-get_contents (char *linebuf, size_t len, FILE *stream)
-{
-  size_t remaining_len = len;
-  char *curbuf = linebuf;
-
-  do
-    {
-      int curlen = ((remaining_len > (size_t) INT_MAX) ? INT_MAX
-		    : remaining_len);
-
-      /* Terminate the line so that we can test for overflow.  */
-      ((unsigned char *) curbuf)[curlen - 1] = 0xff;
-
-      char *p = fgets_unlocked (curbuf, curlen, stream);
-
-      /* EOF or read error.  */
-      if (p == NULL)
-        return gcr_error;
-
-      /* Done reading in the line.  */
-      if (((unsigned char *) curbuf)[curlen - 1] == 0xff)
-        return gcr_ok;
-
-      /* Drop the terminating '\0'.  */
-      remaining_len -= curlen - 1;
-      curbuf += curlen - 1;
-    }
-  /* fgets copies one less than the input length.  Our last iteration is of
-     REMAINING_LEN and once that is done, REMAINING_LEN is decremented by
-     REMAINING_LEN - 1, leaving the result as 1.  */
-  while (remaining_len > 1);
-
-  /* This means that the current buffer was not large enough.  */
-  return gcr_overflow;
-}
 
 /* Parsing the database file into `struct STRUCTURE' data structures.  */
 static enum nss_status
@@ -212,10 +104,9 @@ internal_getent (FILE *stream, struct STRUCTURE *result,
 		 char *buffer, size_t buflen, int *errnop H_ERRNO_PROTO
 		 EXTRA_ARGS_DECL)
 {
-  char *p;
   struct parser_data *data = (void *) buffer;
   size_t linebuflen = buffer + buflen - data->linebuffer;
-  int parse_result;
+  int saved_errno = errno;	/* Do not clobber errno on success.  */
 
   if (buflen < sizeof *data + 2)
     {
@@ -224,76 +115,70 @@ internal_getent (FILE *stream, struct STRUCTURE *result,
       return NSS_STATUS_TRYAGAIN;
     }
 
-  do
+  while (true)
     {
-      get_contents_ret r = get_contents (data->linebuffer, linebuflen, stream);
-
-      if (r == gcr_error)
+      off64_t original_offset;
+      int ret = __nss_readline (stream, data->linebuffer, linebuflen,
+				&original_offset);
+      if (ret == ENOENT)
 	{
-	  /* End of file or read error.  */
+	  /* End of file.  */
 	  H_ERRNO_SET (HOST_NOT_FOUND);
+	  __set_errno (saved_errno);
 	  return NSS_STATUS_NOTFOUND;
 	}
-
-      if (r == gcr_overflow)
+      else if (ret == 0)
 	{
-	  /* The line is too long.  Give the user the opportunity to
-	     enlarge the buffer.  */
-	  *errnop = ERANGE;
-	  H_ERRNO_SET (NETDB_INTERNAL);
-	  return NSS_STATUS_TRYAGAIN;
+	  ret = __nss_parse_line_result (stream, original_offset,
+					 parse_line (data->linebuffer,
+						     result, data, buflen,
+						     errnop EXTRA_ARGS));
+	  if (ret == 0)
+	    {
+	      /* Line has been parsed successfully.  */
+	      __set_errno (saved_errno);
+	      return NSS_STATUS_SUCCESS;
+	    }
+	  else if (ret == EINVAL)
+	    /* If it is invalid, loop to get the next line of the file
+	       to parse.  */
+	    continue;
 	}
 
-      /* Everything OK.  Now skip leading blanks.  */
-      p = data->linebuffer;
-      while (isspace (*p))
-	++p;
-    }
-  while (*p == '\0' || *p == '#' /* Ignore empty and comment lines.  */
-	 /* Parse the line.  If it is invalid, loop to get the next
-	    line of the file to parse.  */
-	 || ! (parse_result = parse_line (p, result, data, buflen, errnop
-					  EXTRA_ARGS)));
-
-  if (__glibc_unlikely (parse_result == -1))
-    {
+      *errnop = ret;
       H_ERRNO_SET (NETDB_INTERNAL);
-      return NSS_STATUS_TRYAGAIN;
+      if (ret == ERANGE)
+	/* Request larger buffer.  */
+	return NSS_STATUS_TRYAGAIN;
+      else
+	/* Other read failure.  */
+	return NSS_STATUS_UNAVAIL;
     }
-
-  /* Filled in RESULT with the next entry from the database file.  */
-  return NSS_STATUS_SUCCESS;
 }
 
 
 /* Return the next entry from the database file, doing locking.  */
 enum nss_status
-ALTFILES_SYMBOL2(_get,ENTNAME_r) (struct STRUCTURE *result, char *buffer,
+CONCAT(_nss_files_get,ENTNAME_r) (struct STRUCTURE *result, char *buffer,
 				  size_t buflen, int *errnop H_ERRNO_PROTO)
 {
   /* Return next entry in host file.  */
-  enum nss_status status = NSS_STATUS_SUCCESS;
 
-  __libc_lock_lock (lock);
+  struct nss_files_per_file_data *data;
+  enum nss_status status = __nss_files_data_open (&data,
+						  CONCAT (nss_file_, ENTNAME),
+						  DATAFILE,
+						  errnop, H_ERRNO_ARG_OR_NULL);
+  if (status != NSS_STATUS_SUCCESS)
+    return status;
 
-  /* Be prepared that the set*ent function was not called before.  */
-  if (stream == NULL)
-    {
-      int save_errno = errno;
+  status = internal_getent (data->stream, result, buffer, buflen, errnop
+			    H_ERRNO_ARG EXTRA_ARGS_VALUE);
 
-      status = internal_setent (&stream);
-
-      __set_errno (save_errno);
-    }
-
-  if (status == NSS_STATUS_SUCCESS)
-    status = internal_getent (stream, result, buffer, buflen, errnop
-			      H_ERRNO_ARG EXTRA_ARGS_VALUE);
-
-  __libc_lock_unlock (lock);
-
+  __nss_files_data_put (data);
   return status;
 }
+libc_hidden_def (CONCAT (_nss_files_get,ENTNAME_r))
 
 /* Macro for defining lookup functions for this file-based database.
 
@@ -309,7 +194,7 @@ ALTFILES_SYMBOL2(_get,ENTNAME_r) (struct STRUCTURE *result, char *buffer,
 
 #define DB_LOOKUP(name, db_char, keysize, keypattern, break_if_match, proto...)\
 enum nss_status								      \
-ALTFILES_SYMBOL1(_get##name##_r) (proto,				      \
+_nss_files_get##name##_r (proto,					      \
 			  struct STRUCTURE *result, char *buffer,	      \
 			  size_t buflen, int *errnop H_ERRNO_PROTO)	      \
 {									      \
@@ -326,8 +211,9 @@ ALTFILES_SYMBOL1(_get##name##_r) (proto,				      \
 	     == NSS_STATUS_SUCCESS)					      \
 	{ break_if_match }						      \
 									      \
-      internal_endent (&stream);					      \
+      fclose (stream);							      \
     }									      \
 									      \
   return status;							      \
-}
+}									      \
+libc_hidden_def (_nss_files_get##name##_r)

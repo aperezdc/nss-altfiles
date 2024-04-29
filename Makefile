@@ -2,13 +2,26 @@
 # Adrian Perez, 2014-05-21
 #
 
+comma := ,
+
 -include config.mk
+
+ifeq ($(strip $(HANDLE_ALL)),)
+HANDLE_ALL := grp pwd
+endif
+
+ifeq ($(strip $(MODULE_NAME)),)
+MODULE_NAME := altfiles
+endif
 
 LIBDIR ?= $(PREFIX)/lib
 
 # By default, only pwd/grp are handled
-HANDLE_pwd ?= 1
-HANDLE_grp ?= 1
+define def-handle
+HANDLE_$1 := 1
+endef
+
+$(foreach I,$(HANDLE_ALL),$(eval $(call def-handle,$I)))
 
 # Choose object depending on the HANDLE_foo variables
 O := $(if $(HANDLE_rpc),     src/nss_altfiles/files-rpc.o)  \
@@ -20,21 +33,22 @@ O := $(if $(HANDLE_rpc),     src/nss_altfiles/files-rpc.o)  \
      $(if $(HANDLE_grp),     src/nss_altfiles/files-grp.o  src/grp/fgetgrent_r.o)   \
      $(if $(HANDLE_spwd),    src/nss_altfiles/files-spwd.o src/shadow/sgetspent_r.o) \
      $(if $(HANDLE_sgrp),    src/nss_altfiles/files-sgrp.o src/gshadow/sgetsgent_r.o) \
-     src/nss_altfiles/files-have_o_cloexec.o
+     src/nss_altfiles/nss_fgetent_r.o \
+     src/nss_altfiles/nss_files_data.o \
+     src/nss_altfiles/nss_files_fopen.o \
+     src/nss_altfiles/nss_parse_line_result.o \
+     src/nss_altfiles/nss_readline.o
 
-CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic -std=gnu99 -Wall
-LDFLAGS  += $(CFLAGS) -Wl,-soname,$T -Wl,-as-needed -lpthread
-CPPFLAGS += -D_GNU_SOURCE
+CFLAGS   += $(EXTRA_CFLAGS) -pthread -fpic -std=gnu11 -Wall
+LDFLAGS  += $(CFLAGS) -Wl,--as-needed
+CPPFLAGS += -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 \
+            -DALTFILES_MODULE_NAME=$(strip $(MODULE_NAME))
 
 ifneq ($(strip $(DATADIR)),)
-  CPPFLAGS += -DALTFILES_DATADIR='"$(strip $(DATADIR))"'
+CPPFLAGS += -DALTFILES_DATADIR='"$(strip $(DATADIR))"'
 endif
-ifneq ($(strip $(MODULE_NAME)),)
-  CPPFLAGS += -DALTFILES_MODULE_NAME=$(strip $(MODULE_NAME))
-  T := libnss_$(MODULE_NAME).so.2
-else
-  T := libnss_altfiles.so.2
-endif
+
+T := libnss_$(MODULE_NAME).so.2
 
 # Support getting the number of parallel jobs via Build-API
 # Info: http://people.gnome.org/~walters/docs/build-api.txt
@@ -45,8 +59,14 @@ endif
 
 all: $T nss-altfiles-config
 
-$T: $O
-	$(CC) -shared -o $@ $^ $(LDFLAGS)
+symbols.map: gen-symmap Makefile
+	./gen-symmap $(MODULE_NAME) $(HANDLE_ALL) > $@
+symbols.ver: gen-symver Makefile
+	./gen-symver $(MODULE_NAME) > $@
+
+$T: LDFLAGS += -Wl,-soname,$T -lpthread
+$T: $O symbols.map symbols.ver
+	$(CC) -shared -o $@ $O $(LDFLAGS) -Wl,--version-script,symbols.ver symbols.map
 
 $O: src/nss_altfiles/files-XXX.c src/nss_altfiles/files-parse.c src/compat.h
 src/nss_altfiles/files-hosts.o: src/resolv/mapv4v6addr.h  src/resolv/res_hconf.h
@@ -55,8 +75,9 @@ nss-altfiles-config: src/main.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
-	find src -name '*.o' -delete
+	$(RM) $O src/main.o
 	$(RM) $T nss-altfiles-config
+	$(RM) symbols.map symbols.ver
 
 distclean: clean
 	$(RM) config.mk

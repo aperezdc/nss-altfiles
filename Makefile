@@ -57,7 +57,7 @@ ifneq ($(strip $(BUILDAPI_JOBS)),)
   MAKEOPTS += -j$(BUILDAPI_JOBS)
 endif
 
-all: $T nss-altfiles-config
+all: $T nss-$(MODULE_NAME)-config
 
 symbols.map: gen-symmap Makefile
 	./gen-symmap $(MODULE_NAME) $(HANDLE_ALL) > $@
@@ -71,12 +71,12 @@ $T: $O symbols.map symbols.ver
 $O: src/nss_altfiles/files-XXX.c src/nss_altfiles/files-parse.c src/compat.h
 src/nss_altfiles/files-hosts.o: src/resolv/mapv4v6addr.h  src/resolv/res_hconf.h
 
-nss-altfiles-config: src/main.o
+nss-$(MODULE_NAME)-config: src/main.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
 	$(RM) $O src/main.o
-	$(RM) $T nss-altfiles-config
+	$(RM) $T nss-$(MODULE_NAME)-config
 	$(RM) symbols.map symbols.ver
 
 distclean: clean
